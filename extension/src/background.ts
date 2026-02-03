@@ -1,4 +1,5 @@
 import { humanizeTabSendMessageError } from './error_utils';
+import { renderMarkdownToHtml } from './markdown_render';
 
 const NATIVE_HOST = 'com.codex.apple_notes_webclipper';
 
@@ -59,6 +60,15 @@ async function getActiveTab(): Promise<ActiveTab> {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function tryRenderHtml(markdown: string): string | null {
+  try {
+    return renderMarkdownToHtml(markdown);
+  } catch (err) {
+    console.warn('Failed to render markdown to HTML', err);
+    return null;
+  }
 }
 
 function sendTabMessage<TResponse>(tabId: number, message: object): Promise<{ ok: true; response: TResponse } | { ok: false; error: string }> {
@@ -162,12 +172,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       }
 
       const extracted = payload.extracted;
+      const html = tryRenderHtml(extracted.markdown);
       const res = await sendNativeMessage<{ ok: boolean; htmlPath?: string; error?: string }>({
         action: 'renderHtml',
         title: extracted.title,
         sourceUrl: extracted.sourceUrl,
         markdown: extracted.markdown,
-        images: extracted.images
+        images: extracted.images,
+        ...(html ? { html } : {})
       });
       sendResponse({ ok: true, data: res });
       return;
@@ -193,13 +205,15 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       };
       await chrome.storage.local.set({ lastDebugPayload: debugPayload });
 
+      const html = tryRenderHtml(extracted.markdown);
       const res = await sendNativeMessage<{ ok: boolean; error?: string; noteId?: string }>({
         action: 'createNote',
         folder: chosenFolder,
         title: extracted.title,
         sourceUrl: extracted.sourceUrl,
         markdown: extracted.markdown,
-        images: extracted.images
+        images: extracted.images,
+        ...(html ? { html } : {})
       });
       sendResponse({ ok: Boolean(res.ok), data: res });
       return;
