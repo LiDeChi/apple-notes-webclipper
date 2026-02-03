@@ -1,5 +1,5 @@
 import { humanizeTabSendMessageError } from './error_utils';
-import { renderMarkdownToHtml } from './markdown_render';
+import { deriveTitleFromMarkdown, renderMarkdownToHtml } from './markdown_render';
 
 const NATIVE_HOST = 'com.codex.apple_notes_webclipper';
 
@@ -173,9 +173,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
       const extracted = payload.extracted;
       const html = tryRenderHtml(extracted.markdown);
+      const title = deriveTitleFromMarkdown(extracted.markdown, extracted.title) || extracted.title;
       const res = await sendNativeMessage<{ ok: boolean; htmlPath?: string; error?: string }>({
         action: 'renderHtml',
-        title: extracted.title,
+        title,
         sourceUrl: extracted.sourceUrl,
         markdown: extracted.markdown,
         images: extracted.images,
@@ -206,10 +207,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       await chrome.storage.local.set({ lastDebugPayload: debugPayload });
 
       const html = tryRenderHtml(extracted.markdown);
+      const title = deriveTitleFromMarkdown(extracted.markdown, extracted.title) || extracted.title;
       const res = await sendNativeMessage<{ ok: boolean; error?: string; noteId?: string }>({
         action: 'createNote',
         folder: chosenFolder,
-        title: extracted.title,
+        title,
         sourceUrl: extracted.sourceUrl,
         markdown: extracted.markdown,
         images: extracted.images,
