@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import MarkdownIt from 'markdown-it';
 
-const md = new MarkdownIt({ html: false, linkify: true, breaks: false });
+const md = new MarkdownIt({ html: false, linkify: true, breaks: true });
 md.enable(['table', 'strikethrough']);
 
 const input = [

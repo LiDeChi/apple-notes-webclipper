@@ -18,8 +18,9 @@ try {
   });
 
   const mod = await import(pathToFileURL(outfile).href);
-  const html = mod.renderMarkdownToHtml('# Title');
+  const html = mod.renderMarkdownToHtml('# Title\nline1\nline2');
   assert.match(html, /<h1>Title<\/h1>/);
+  assert.match(html, /line1<\s*br\s*\/?>\s*line2/);
   console.log('ok');
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
