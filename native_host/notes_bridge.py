@@ -231,10 +231,20 @@ def replace_image_tokens(markdown: str, images: List[ImageJob], source_url: Opti
     return out
 
 
+def render_note_html(payload: Dict[str, Any], images: List[ImageJob], source_url: Optional[str]) -> str:
+    html = str(payload.get("html") or "").strip()
+    if html:
+        return replace_image_tokens(html, images, source_url)
+
+    markdown = str(payload.get("markdown") or "").strip()
+    if images:
+        markdown = replace_image_tokens(markdown, images, source_url)
+    return markdown_with_data_images_to_notes_html(markdown)
+
+
 def render_html_preview(payload: Dict[str, Any]) -> Dict[str, Any]:
     title = str(payload.get("title") or "Untitled")
     source_url = str(payload.get("sourceUrl") or "")
-    markdown = str(payload.get("markdown") or "").strip()
 
     images_raw = payload.get("images") or []
     images: List[ImageJob] = []
@@ -244,10 +254,7 @@ def render_html_preview(payload: Dict[str, Any]) -> Dict[str, Any]:
         except Exception:
             continue
 
-    if images:
-        markdown = replace_image_tokens(markdown, images, source_url)
-
-    fragment = markdown_with_data_images_to_notes_html(markdown)
+    fragment = render_note_html(payload, images, source_url)
     full = "\n".join(
         [
             "<!doctype html>",
@@ -300,7 +307,6 @@ def list_folders() -> Dict[str, Any]:
 def create_note(payload: Dict[str, Any], script_dir: str) -> Dict[str, Any]:
     title = str(payload.get("title") or "Untitled")
     source_url = str(payload.get("sourceUrl") or "")
-    markdown = str(payload.get("markdown") or "").strip()
     folder = payload.get("folder") or {}
     account_name = str(folder.get("accountName") or "")
     folder_path = str(folder.get("folderPath") or "")
@@ -313,10 +319,7 @@ def create_note(payload: Dict[str, Any], script_dir: str) -> Dict[str, Any]:
         except Exception:
             continue
 
-    if images:
-        markdown = replace_image_tokens(markdown, images, source_url)
-
-    html = markdown_with_data_images_to_notes_html(markdown)
+    html = render_note_html(payload, images, source_url)
 
     with tempfile.NamedTemporaryFile("w", delete=False, suffix=".html", encoding="utf-8") as f:
         f.write(html)
