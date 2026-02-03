@@ -1,0 +1,26 @@
+{
+  "name": "apple-notes-webclipper",
+  "version": "0.1.0",
+  "description": "Chrome extension + Native Messaging host to save web pages (Markdown-first) to Apple Notes, with inline images.",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:release": "node scripts/build.mjs --release",
+    "watch": "node scripts/build.mjs --watch",
+    "clean": "rm -rf dist",
+    "release:zip": "./release/build_extension_zip.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/chrome": "^0.1.36",
+    "esbuild": "^0.27.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "turndown": "^7.2.2"
+  }
+}

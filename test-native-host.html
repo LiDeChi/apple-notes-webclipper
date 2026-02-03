@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Native Host 测试</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #333; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { padding: 10px 20px; font-size: 14px; cursor: pointer; }
+        #log { max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Apple Notes Web Clipper - Native Host 测试</h1>
+
+    <div class="test-section info">
+        <h3>扩展 ID</h3>
+        <p id="extension-id">检测中...</p>
+    </div>
+
+    <div class="test-section info">
+        <h3>Native Host 配置</h3>
+        <pre id="manifest-info">检测中...</pre>
+    </div>
+
+    <div class="test-section">
+        <h3>连接测试</h3>
+        <button onclick="testPing()">测试 Ping</button>
+        <button onclick="testListFolders()">测试列出文件夹</button>
+    </div>
+
+    <div class="test-section">
+        <h3>测试日志</h3>
+        <pre id="log">等待测试...</pre>
+    </div>
+
+    <script>
+        const NATIVE_HOST = "com.codex.apple_notes_webclipper";
+
+        function log(msg, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            logEl.textContent += `${prefix} [${timestamp}] ${msg}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        async function sendNativeMessage(message) {
+            return new Promise((resolve, reject) => {
+                chrome.runtime.sendNativeMessage(NATIVE_HOST, message, (response) => {
+                    const err = chrome.runtime.lastError;
+                    if (err) {
+                        reject(new Error(err.message));
+                    } else {
+                        resolve(response);
+                    }
+                });
+            });
+        }
+
+        async function testPing() {
+            clearLog();
+            log('开始测试 Ping...', 'info');
+
+            try {
+                const res = await sendNativeMessage({ action: "ping" });
+                log(`响应: ${JSON.stringify(res, null, 2)}`, 'success');
+                log('✅ Native Host 连接成功！', 'success');
+            } catch (err) {
+                log(`错误: ${err.message}`, 'error');
+                log('\n可能的原因：', 'error');
+                log('1. Native Host 未正确安装', 'error');
+                log('2. 扩展 ID 不匹配', 'error');
+                log('3. Chrome 需要重启', 'error');
+            }
+        }
+
+        async function testListFolders() {
+            clearLog();
+            log('开始测试列出文件夹...', 'info');
+
+            try {
+                const res = await sendNativeMessage({ action: "listFolders" });
+                log(`响应: ${JSON.stringify(res, null, 2)}`, 'success');
+                log('✅ 列出文件夹成功！', 'success');
+            } catch (err) {
+                log(`错误: ${err.message}`, 'error');
+            }
+        }
+
+        // 初始化
+        window.addEventListener('load', async () => {
+            // 获取扩展 ID
+            if (chrome.runtime && chrome.runtime.id) {
+                document.getElementById('extension-id').textContent =
+                    `你的扩展 ID: ${chrome.runtime.id}`;
+            }
+
+            // 检查 manifest
+            log('检查 Native Host 配置...', 'info');
+
+            // 预期的扩展 ID
+            const expectedId = "aiejghhoadhffccmmfoiohjbjdmdlhhb";
+            const actualId = chrome.runtime.id;
+
+            if (actualId === expectedId) {
+                document.getElementById('manifest-info').textContent =
+                    `✅ 扩展 ID 匹配: ${actualId}`;
+            } else {
+                document.getElementById('manifest-info').textContent =
+                    `⚠️ 扩展 ID 不匹配！\n` +
+                    `预期: ${expectedId}\n` +
+                    `实际: ${actualId}\n\n` +
+                    `如果 ID 不匹配，需要重新构建 pkg：\n` +
+                    `./release/build_macos_native_host_pkg.sh ${actualId}`;
+                log(`扩展 ID 不匹配！预期 ${expectedId}，实际 ${actualId}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

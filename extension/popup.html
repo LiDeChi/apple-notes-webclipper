@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Save to Notes</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="page">
+    <div class="container">
+      <div class="header">
+        <div class="title">Save to Apple Notes</div>
+        <div class="subtitle">Markdown-first + inline images</div>
+      </div>
+
+      <div class="section">
+        <label class="label" for="folderSelect">保存到文件夹</label>
+        <select id="folderSelect" class="select"></select>
+        <label class="checkbox">
+          <input id="rememberFolder" type="checkbox" />
+          记住这个文件夹（下次不再问）
+        </label>
+        <button id="refreshFolders" class="button button-secondary" type="button">刷新文件夹列表</button>
+      </div>
+
+      <div class="section actions">
+        <button id="saveReader" class="button" type="button">保存（阅读模式 / 正文）</button>
+        <button id="saveSelection" class="button button-secondary" type="button">保存（仅选中内容）</button>
+      </div>
+
+      <div class="section">
+        <div id="status" class="status" role="status"></div>
+        <div class="hint">
+          首次使用需要安装本机 Native Host（见 Options）。
+          <button id="openOptions" class="linklike" type="button">打开设置</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
+

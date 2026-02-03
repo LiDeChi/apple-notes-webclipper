@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Apple Notes Web Clipper - Options</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="page page-wide">
+    <div class="container">
+      <div class="header">
+        <div class="title">Apple Notes Web Clipper</div>
+        <div class="subtitle">Native Host / 文件夹设置</div>
+      </div>
+
+      <div class="section">
+        <div class="label">Native Host</div>
+        <div class="mono">Host 名称：<span id="hostName"></span></div>
+        <div class="mono">安装脚本：native_host/install_native_host.sh</div>
+        <button id="ping" class="button" type="button">测试连接</button>
+        <div id="pingStatus" class="status" role="status"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">默认文件夹</div>
+        <select id="folderSelect" class="select"></select>
+        <label class="checkbox">
+          <input id="askEveryTime" type="checkbox" />
+          每次都询问文件夹（否则用默认文件夹）
+        </label>
+        <button id="refreshFolders" class="button button-secondary" type="button">刷新文件夹列表</button>
+        <div id="folderStatus" class="status" role="status"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">调试（排版乱时用）</div>
+        <div class="mono" id="debugSummary">暂无调试数据。先用插件保存一次。</div>
+        <div class="actions">
+          <button id="copyDebugJson" class="button button-secondary" type="button">复制 Debug JSON</button>
+          <button id="downloadDebugJson" class="button button-secondary" type="button">下载 Debug JSON</button>
+          <button id="copyMarkdown" class="button button-secondary" type="button">复制 Markdown（仅文本）</button>
+          <button id="renderDebugHtml" class="button button-secondary" type="button">生成 HTML 预览（Native Host）</button>
+          <button id="clearDebug" class="button button-secondary" type="button">清除调试数据</button>
+        </div>
+        <div id="debugStatus" class="status" role="status"></div>
+        <div class="hint">
+          把 Debug JSON 发给我，我就能在本地复现并调排版。
+        </div>
+      </div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
