@@ -29,6 +29,14 @@ const LANGUAGE_LABELS = new Set([
   'sql'
 ]);
 
+const X_NOISE_LINES = new Set([
+  'Subscribe',
+  'Relevant',
+  'View quotes',
+  'Views',
+  'Article'
+]);
+
 const md = new MarkdownIt({
   html: false,
   linkify: true,
@@ -119,8 +127,8 @@ function normalizeMarkdown(markdown: string): string {
     }
   }
 
+  const rawLines = raw.split('\n');
   if (isXExport) {
-    const rawLines = raw.split('\n');
     const firstSep = rawLines.findIndex((line) => line.trim() === '---');
     if (firstSep !== -1) {
       let start = firstSep + 1;
@@ -146,10 +154,15 @@ function normalizeMarkdown(markdown: string): string {
     if (trimmed === '[' || trimmed === ']' || trimmed === '·') continue;
     if (trimmed.startsWith('Captured:')) continue;
     if (/\/analytics\b/.test(trimmed)) continue;
-    if (['Article', 'Relevant', 'View quotes', 'Views'].includes(trimmed)) continue;
+    if (X_NOISE_LINES.has(trimmed)) continue;
     if (/^\d{1,3}(,\d{3})+$/.test(trimmed)) continue;
     if (/^\d+(\.\d+)?[KkMm]?$/.test(trimmed)) continue;
     if (trimmed.startsWith('# ') && trimmed.includes(' on X:')) continue;
+    if (/reposted$/i.test(trimmed)) continue;
+    if (/^Click to Subscribe/i.test(trimmed)) continue;
+    if (/^\]\(\/[^)]+\)$/.test(trimmed)) continue;
+    if (/^\[[^\]]+\]\(\/[^)]+\)$/.test(trimmed)) continue;
+    if (trimmed.startsWith('@')) continue;
 
     if (LANGUAGE_LABELS.has(trimmed.toLowerCase())) {
       let j = i + 1;

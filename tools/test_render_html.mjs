@@ -55,6 +55,10 @@ try {
     '',
     '](/user)',
     '',
+    '@theo',
+    '',
+    '[Upgrade to Premium](/i/premium_sign_up)',
+    '',
     'https://x.com/user/status/123/analytics',
     '',
     '---',
@@ -71,6 +75,8 @@ try {
   assert.doesNotMatch(html2, /Related content line/);
   assert.doesNotMatch(html2, /analytics/);
   assert.equal(html2.includes('](/user)'), false);
+  assert.equal(html2.includes('@theo'), false);
+  assert.equal(html2.includes('Upgrade to Premium'), false);
 
   const title = mod.deriveTitleFromMarkdown(xInput, '(19) someone on X: \"Very long title\" / X');
   assert.equal(title, 'Main content line');
