@@ -71,6 +71,20 @@ function tryRenderHtml(markdown: string): string | null {
   }
 }
 
+function normalizeImageTokens(markdown: string, images: Array<{ token: string }>): string {
+  if (!images?.length) return markdown;
+  const tokens = new Set(images.map((img) => String(img.token)));
+  return markdown.replace(/\[\[\[IMG:([^\]]+)\]\]\]/g, (_match, rawToken) => {
+    const token = String(rawToken);
+    if (tokens.has(token)) return `[[[IMG:${token}]]]`;
+    if (/^\d+$/.test(token)) {
+      const mapped = `twimg-${token}`;
+      if (tokens.has(mapped)) return `[[[IMG:${mapped}]]]`;
+    }
+    return '';
+  });
+}
+
 function sendTabMessage<TResponse>(tabId: number, message: object): Promise<{ ok: true; response: TResponse } | { ok: false; error: string }> {
   return new Promise((resolve) => {
     chrome.tabs.sendMessage(tabId, message, (res) => {
@@ -172,13 +186,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       }
 
       const extracted = payload.extracted;
-      const html = tryRenderHtml(extracted.markdown);
-      const title = deriveTitleFromMarkdown(extracted.markdown, extracted.title) || extracted.title;
+      const normalizedMarkdown = normalizeImageTokens(extracted.markdown, extracted.images);
+      const html = tryRenderHtml(normalizedMarkdown);
+      const title = deriveTitleFromMarkdown(normalizedMarkdown, extracted.title) || extracted.title;
       const res = await sendNativeMessage<{ ok: boolean; htmlPath?: string; error?: string }>({
         action: 'renderHtml',
         title,
         sourceUrl: extracted.sourceUrl,
-        markdown: extracted.markdown,
+        markdown: normalizedMarkdown,
         images: extracted.images,
         ...(html ? { html } : {})
       });
@@ -206,14 +221,15 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       };
       await chrome.storage.local.set({ lastDebugPayload: debugPayload });
 
-      const html = tryRenderHtml(extracted.markdown);
-      const title = deriveTitleFromMarkdown(extracted.markdown, extracted.title) || extracted.title;
+      const normalizedMarkdown = normalizeImageTokens(extracted.markdown, extracted.images);
+      const html = tryRenderHtml(normalizedMarkdown);
+      const title = deriveTitleFromMarkdown(normalizedMarkdown, extracted.title) || extracted.title;
       const res = await sendNativeMessage<{ ok: boolean; error?: string; noteId?: string }>({
         action: 'createNote',
         folder: chosenFolder,
         title,
         sourceUrl: extracted.sourceUrl,
-        markdown: extracted.markdown,
+        markdown: normalizedMarkdown,
         images: extracted.images,
         ...(html ? { html } : {})
       });
