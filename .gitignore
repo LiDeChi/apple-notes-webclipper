@@ -3,3 +3,4 @@ dist
 release/out
 .DS_Store
 npm-debug.log*
+.worktrees
