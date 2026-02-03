@@ -102,6 +102,22 @@ function normalizeMarkdown(markdown: string): string {
 
   const isXExport =
     raw.includes('https://x.com/') && raw.includes('Captured:') && raw.slice(0, 2000).includes('on X:');
+  let sourceUrl = '';
+  let capturedLine = '';
+
+  if (isXExport) {
+    const headerLines = raw.split('\n');
+    for (const line of headerLines) {
+      const trimmed = line.trim();
+      if (!sourceUrl && /^https:\/\/x\.com\/\S+/.test(trimmed)) {
+        sourceUrl = trimmed;
+      }
+      if (!capturedLine && trimmed.startsWith('Captured:')) {
+        capturedLine = trimmed;
+      }
+      if (sourceUrl && capturedLine) break;
+    }
+  }
 
   if (isXExport) {
     const rawLines = raw.split('\n');
@@ -133,6 +149,7 @@ function normalizeMarkdown(markdown: string): string {
     if (['Article', 'Relevant', 'View quotes', 'Views'].includes(trimmed)) continue;
     if (/^\d{1,3}(,\d{3})+$/.test(trimmed)) continue;
     if (/^\d+(\.\d+)?[KkMm]?$/.test(trimmed)) continue;
+    if (trimmed.startsWith('# ') && trimmed.includes(' on X:')) continue;
 
     if (LANGUAGE_LABELS.has(trimmed.toLowerCase())) {
       let j = i + 1;
@@ -143,7 +160,16 @@ function normalizeMarkdown(markdown: string): string {
     out.push(line);
   }
 
-  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  let body = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  if (isXExport) {
+    const meta: string[] = [];
+    if (sourceUrl) meta.push(`Source: ${sourceUrl}`);
+    if (capturedLine) meta.push(capturedLine);
+    if (meta.length) {
+      body = `${meta.join('\n')}\n\n${body}`.trim();
+    }
+  }
+  return body;
 }
 
 function cleanTitle(text: string): string {
@@ -166,6 +192,7 @@ export function deriveTitleFromMarkdown(markdown: string, fallbackTitle: string)
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
+    if (trimmed.startsWith('Source:') || trimmed.startsWith('Captured:')) continue;
     if (trimmed.startsWith('[[[IMG:')) continue;
     candidate = cleanTitle(trimmed);
     if (candidate) break;

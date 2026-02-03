@@ -63,6 +63,9 @@ try {
   ].join('\n');
 
   const html2 = mod.renderMarkdownToHtml(xInput);
+  assert.equal(html2.includes('Source:'), true);
+  assert.equal(html2.includes('Captured: 2026-02-03T00:00:00Z'), true);
+  assert.equal(html2.includes('href="https://x.com/user/status/123"'), true);
   assert.match(html2, /Main content line/);
   assert.match(html2, /\[\[\[IMG:0\]\]\]/);
   assert.doesNotMatch(html2, /Related content line/);
